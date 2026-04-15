@@ -11,10 +11,13 @@ header {
 
 respond /health "OK" 200
 
-# VLESS WS
-@ws_vless {
+# VLESS - 使用簡單 TCP 反代（推薦先用這個測試）
+@websocket_xray_vless {
     header Connection *Upgrade*
     header Upgrade websocket
     path /vless
 }
-reverse_proxy @ws_vless localhost:8081
+reverse_proxy @websocket_xray_vless localhost:8081
+
+# 如果你還想保留原本的 UUID 路徑，可以把上面改成：
+# path /$AUUID-vless
