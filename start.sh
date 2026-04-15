@@ -1,26 +1,18 @@
 #!/bin/sh
 
-echo "Starting Tor..."
-tor -f /etc/tor/torrc &
+echo "=== Starting Xray + Caddy (Tor 已關閉) ==="
 
-# 等待 Tor 完全啟動（Bootstrapped 100%）
-echo "Waiting for Tor to bootstrap..."
-for i in $(seq 1 120); do
-    if grep -q "Bootstrapped 100%" /var/log/tor/log 2>/dev/null; then
-        echo "Tor bootstrapped successfully!"
-        break
-    fi
-    sleep 5
-done
+# 使用你原本的 UUID
+UUID="31034190-cfde-47c0-98fc-b71416d3c97a"
 
-if ! grep -q "Bootstrapped 100%" /var/log/tor/log 2>/dev/null; then
-    echo "ERROR: Tor failed to bootstrap after 10 minutes!"
-    tail -n 50 /var/log/tor/log
-    exit 1
-fi
+echo "替換 UUID 到 xray.json ..."
+sed -i "s/\$AUUID/$UUID/g" /xray.json
 
-echo "Starting Xray..."
+echo "=== 啟動 Xray ==="
 /xray -config /xray.json &
 
-echo "Starting Caddy..."
+echo "等待 Xray 啟動 8 秒..."
+sleep 8
+
+echo "=== 啟動 Caddy ==="
 caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
