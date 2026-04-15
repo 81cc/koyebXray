@@ -1,4 +1,5 @@
-:$PORT
+:8080
+
 root * /usr/share/caddy
 file_server browse
 
@@ -6,49 +7,14 @@ header {
     X-Robots-Tag none
     X-Content-Type-Options nosniff
     X-Frame-Options DENY
-    Referrer-Policy no-referrer-when-downgrade
 }
 
-basicauth /$AUUID/* {
-    $AUUID $MYUUID-HASH
-}
+respond /health "OK" 200
 
-# VMess
-@websocket_xray_vmess {
+# VLESS WS
+@ws_vless {
     header Connection *Upgrade*
     header Upgrade websocket
-    path /$AUUID-vmess
+    path /vless
 }
-reverse_proxy @websocket_xray_vmess unix//etc/caddy/vmess
-
-# VLESS
-@websocket_xray_vless {
-    header Connection *Upgrade*
-    header Upgrade websocket
-    path /$AUUID-vless
-}
-reverse_proxy @websocket_xray_vless unix//etc/caddy/vless
-
-# Trojan
-@websocket_xray_trojan {
-    header Connection *Upgrade*
-    header Upgrade websocket
-    path /$AUUID-trojan
-}
-reverse_proxy @websocket_xray_trojan unix//etc/caddy/trojan
-
-# Shadowsocks (改用 TCP 端口，與 xray.json 匹配)
-@websocket_xray_ss {
-    header Connection *Upgrade*
-    header Upgrade websocket
-    path /$AUUID-ss
-}
-reverse_proxy @websocket_xray_ss 127.0.0.1:4234
-
-# Socks (改用 TCP 端口)
-@websocket_xray_socks {
-    header Connection *Upgrade*
-    header Upgrade websocket
-    path /$AUUID-socks
-}
-reverse_proxy @websocket_xray_socks 127.0.0.1:5234
+reverse_proxy @ws_vless localhost:8081
